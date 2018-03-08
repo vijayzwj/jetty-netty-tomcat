@@ -4,9 +4,51 @@ tomcat启动流程图   http://blog.csdn.net/cx520forever/article/details/527431
 tomcat Valve管道处理流程:http://blog.csdn.net/cx520forever/article/details/52743166
 
 
+<Server port="-1">
+    <Service name="Catalina">
+        <Executor name="ThreadPool" namePrefix="catalina-exec-" maxThreads="512" />
+
+        <Connector port="8080" protocol="org.apache.coyote.http11.Http11NioProtocol"
+                executor="ThreadPool"
+                acceptCount="1024" maxHttpHeaderSize="8192"
+                enableLookups="False"
+                compression="True" compressionMinSize="2048" compressableMimeType="text/html,text/xml,text/javascript,text/css,text/plain"
+                connectionTimeout="20000" disableUploadTimeout="True"
+                redirectPort="8443" URIEncoding="UTF-8" />
+
+        <Engine name="Catalina" defaultHost="localhost">
+            <Host name="localhost" unpackWARs="True" autoDeploy="True">
+                <Context docBase="/data/tomcat/approot" path="" privileged="True" allowLinking="True"
+                        antiResourceLocking="False" antiJARLocking="False">
+                </Context>
+                
+                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+                         prefix="localhost_access_log." suffix=".txt"
+                         pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+            </Host>
+        </Engine>
+    </Service>
+</Server>
+
+
+
 Server  Service---->*多个Connector   
 
 Container:Engine  Host  Context  Wrapper
 
+Connector根据protol='org.apache.coyote.http11.Http11Protocol'或者protocol='http/1.1',设置协议ProtocolHandler和protocolHandlerClassName
 
-CoyteAdapter:service方法是启动的
+Acceptor线程接收请求(run)--->给线程执行器 getExecutor().execute(new SocketProcessor(wrapper))
+
+-->SocketProcessor(寄生JEndPoint中，而JEndPoint中有Handler中根据protol来决定handler)
+
+-->Http11ConnectionHandler(SocketState process(SocketWrapper<S> socket,SocketStatus status) )(根据createProcessor来生成Http11Processor处理) 
+
+
+-->根据Http11Processor的父类定义出了方法骨架根据骨架运行：public SocketState process(SocketWrapper<S> socketWrapper)
+
+
+-->CoyteAdapter:service方法是启动的处理req，resp的开始(触发pipeline的invoke方法)->StandardEngine(pipleline:[StandardEngineValve])
+
+
+-->StandardHost(pipleline:[StandardHostValve])-->StandardContext(pipleline:[StandardContextValve])-->StandardWraper(pipleline:[StandardWraperValve])
