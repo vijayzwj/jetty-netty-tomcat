@@ -7,3 +7,6 @@ tomcat Valve管道处理流程:http://blog.csdn.net/cx520forever/article/details
 Server  Service---->*多个Connector   
 
 Container:Engine  Host  Context  Wrapper
+
+
+CoyteAdapter:service方法是启动的
