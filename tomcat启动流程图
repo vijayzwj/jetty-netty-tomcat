@@ -1,0 +1,9 @@
+tomcat启动流程图   http://blog.csdn.net/cx520forever/article/details/52743166
+
+
+tomcat Valve管道处理流程:http://blog.csdn.net/cx520forever/article/details/52743166
+
+
+Server  Service---->*多个Connector   
+
+Container:Engine  Host  Context  Wrapper
