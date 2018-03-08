@@ -51,4 +51,12 @@ Acceptor线程接收请求(run)--->给线程执行器 getExecutor().execute(new 
 -->CoyteAdapter:service方法是启动的处理req，resp的开始(触发pipeline的invoke方法)->StandardEngine(pipleline:[StandardEngineValve])
 
 
--->StandardHost(pipleline:[StandardHostValve])-->StandardContext(pipleline:[StandardContextValve])-->StandardWraper(pipleline:[StandardWraperValve])
+-->StandardHost(pipleline:[StandardHostValve])-->StandardContext(pipleline:[StandardContextValve])
+
+
+-->StandardWraper(pipleline:[StandardWraperValve]) [Servlet]
+
+
+
+
+
