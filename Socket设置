@@ -1,0 +1,55 @@
+1 java socket参数设置：
+setSoTimeout(timeout)
+   将此选项设为非零的超时值时，在与此 Socket 关联的 InputStream 上调用 read() 将只阻塞此时间长度
+
+SO_LINGER选项
+	setSoLinger(boolean on ,int seconds);
+	默认情况socket的close()；方法会立即返回。但是底层的socket并没有立即关闭，他会延迟一段时间，等发送完毕了再关闭。
+	如果执行：setSoLinger(true,0)的话，会立即关闭，底层的socket也会立即关闭，丢切剩余的数据。
+	如果setSoLinger(true,3600);会在两种情况关闭，第一：数据发送完毕，第二：就是阻塞了3600秒。
+
+SO_KEEPALIVE选项
+	setKeepAlive(boolean on);
+	当设置为true的时候，TCP会实现监控连接是否有效，当连接处于空闲状态的时候，超过了2个小时，
+	本地的TCP实现会发送一个数据包给远程的socket，如果远程没有发回响应，TCP会持续尝试11分钟，知道响应为止，
+	如果在12分钟的时候还没响应，TCP尝试关闭socket连接。
+
+OOBINLINE选项
+	setOOBInline(boolean on);
+	当设置为true的时候，表示支持紧急数据。接收方需要对紧急数据做进一步的处理。使用更高的协议。
+
+
+输出流关闭测试一：socket关闭吗？
+        dout.close();会造成socket被关闭，但socket.shutdownOutputStream()不会。
+输出流关闭测试二：该流是否可以重新开启？
+        不可以，会抛出异常！
+输出流关闭测试三：输出缓冲区里的数据是丢弃，还是发送？
+        丢弃
+
+HttpRequestExecutor
+HttpClientConnection
+   DefaultBHttpClientConnection 
+       BHttpConnectionBase(socket,inputStream,outputStream)
+
+
+可以造成dout被关闭的操作有：
+		调用dout.close();或din.close();因为使用这种流关闭，会造成socket被关闭，所以输入输出流都将不可再用。
+
+		调用socket.close();
+
+		调用socket.shutdownOutputStream();单方面关闭dout，此时din还可正常使用。
+
+
+[流关闭了就是socket关闭了]
+不知道为什么，这套代码就可以发送过去，这一块里面的原理我也不理解，希望能有大神赐教。
+ 
+如果能发送过去，那么我们可以不必把流关了，而是设置终止字符，用这样的方法，就可以实现两个socket不断地进行传输了。
+
+因为一旦调用了socket对象的shutdownOutput方法，那么在此之后该socket对象的输出流将再也无法被打开。
+也就是说，此时的socket对象即是一个半关闭状态，只能接受，不能发送。同理，shutdownInput也是一样。所以这条路也行不通了
+
+
+ 半关闭适用于哪些场景：
+    1) 当然是用于那些不需要长久保持通信状态的一站式服务；
+    2) 特别适用于HTTP通信，而且特别适用于客户端，因为客户端在发送请求后就无需再发送其它数据了，往往只是等待服务器端返回想要的资源；
+    3) 因此在客户端发送完请求之后就可以立马半关闭输出流了（半写状态）；
